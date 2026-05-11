@@ -1,5 +1,6 @@
 ﻿using System;
 using SmartHomeApp.Devices;
+using SmartHomeApp.Managers;
 
 namespace SmartHomeApp
 {
@@ -15,15 +16,26 @@ namespace SmartHomeApp
 
             try
             {
-                SmartAC ac = new SmartAC();
-                ac.TurnOn();
-                
-                // Mengetes perubahan suhu yang valid
-                ac.SetTemperature(20);
-                
-                // Mengetes pelanggaran DbC (Akan melempar exception)
-                Console.WriteLine("\nMencoba mengatur suhu ke 10 derajat...");
-                ac.SetTemperature(10); 
+                // Inisialisasi Hub menggunakan Generics untuk menampung SmartAC
+                DeviceManager<SmartAC> acHub = new DeviceManager<SmartAC>();
+                Console.WriteLine($"[Sistem] Kapasitas Hub: {acHub.MaxDevicesAllowed} perangkat.\n");
+
+                // Inisialisasi Perangkat (Buatan Radit)
+                SmartAC acRuangTamu = new SmartAC();
+                SmartAC acKamar = new SmartAC();
+
+                // Mendaftarkan perangkat ke Hub (Buatan Rodzy)
+                acHub.AddDevice("AC-01", acRuangTamu);
+                acHub.AddDevice("AC-02", acKamar);
+
+                // Menggunakan perangkat dari Hub
+                var acTarget = acHub.GetDevice("AC-01");
+                acTarget.TurnOn();
+                acTarget.SetTemperature(22);
+
+                // Tes Pelanggaran DbC Rodzy (Mendaftarkan ID yang sama)
+                Console.WriteLine("\n[Tes Error] Mencoba mendaftarkan ID AC-01 lagi...");
+                acHub.AddDevice("AC-01", new SmartAC());
             }
             catch (Exception ex)
             {
