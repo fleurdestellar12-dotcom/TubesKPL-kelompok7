@@ -1,5 +1,6 @@
 ﻿using System;
-using SmartHomeApp.Devices;
+using SmartHomeApp.Devices;   
+using SmartHomeApp.Managers;  
 
 namespace SmartHomeApp
 {
@@ -7,31 +8,39 @@ namespace SmartHomeApp
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("=====================================");
-            Console.WriteLine("Aplikasi Manajemen Rumah Pintar");
-            Console.WriteLine("Kelompok 7 - Modul AC Pintar (Radit)");
-            Console.WriteLine("=====================================\n");
+            Console.WriteLine("=== APLIKASI RUMAH PINTAR (FINAL) ===");
+
+            SmartAC myAC = new SmartAC();
+            AutomationEngine myEngine = new AutomationEngine();
 
             try
             {
-                SmartAC ac = new SmartAC();
+                
+                myEngine.AddSchedule("18:00", () => {
+                    Console.WriteLine(">>> Notifikasi: Waktunya menyalakan AC sore...");
+                    myAC.TurnOn();
+                    myAC.SetTemperature(22);
+                });
+
+                myEngine.AddSchedule("06:00", () => {
+                    Console.WriteLine(">>> Notifikasi: Waktunya mematikan AC pagi...");
+                    myAC.TurnOff();
+                });
 
                 
-                ac.TurnOn();
+                myEngine.ExecuteSchedule("12:00"); 
+                myEngine.ExecuteSchedule("18:00"); 
 
                 
-                ac.SetTemperature(20);
-
-                
-                Console.WriteLine("\nMencoba mengatur suhu ke 10 derajat...");
-                ac.SetTemperature(10);
+                Console.WriteLine("\n--- Tes Input Error ---");
+                myEngine.AddSchedule("25:99", () => { });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\n[ERROR DbC Terdeteksi]: {ex.Message}");
+                Console.WriteLine($"\n[DBC DETECTED]: {ex.Message}");
             }
 
-            Console.ReadLine(); 
+            Console.ReadLine();
         }
     }
 }
