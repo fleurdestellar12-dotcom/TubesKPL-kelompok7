@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.Json;
 
 namespace SmartHomeApp.Devices
 {
+    // Automata: Mendefinisikan status yang valid
     public enum ACState
     {
         Off,
@@ -15,17 +16,17 @@ namespace SmartHomeApp.Devices
     {
         public ACState CurrentState { get; private set; }
         public int Temperature { get; private set; }
-
+        
         private readonly int _minTemp;
         private readonly int _maxTemp;
 
         public SmartAC()
         {
-           
+            // Runtime Configuration: Membaca batas suhu dari file JSON
             string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Config", "appsettings.json");
             string jsonString = File.ReadAllText(configPath);
             using JsonDocument doc = JsonDocument.Parse(jsonString);
-
+            
             var settings = doc.RootElement.GetProperty("ACSettings");
             Temperature = settings.GetProperty("DefaultTemperature").GetInt32();
             _minTemp = settings.GetProperty("MinTemperature").GetInt32();
@@ -34,7 +35,7 @@ namespace SmartHomeApp.Devices
             CurrentState = ACState.Off;
         }
 
-        
+        // Automata: Transisi state
         public void TurnOn()
         {
             CurrentState = ACState.Cooling;
@@ -47,16 +48,16 @@ namespace SmartHomeApp.Devices
             Console.WriteLine("AC Dimatikan.");
         }
 
-        
+        // DbC (Design by Contract): Validasi input yang ketat
         public void SetTemperature(int newTemp)
         {
-            
+            // Pre-condition 1: AC harus menyala
             if (CurrentState == ACState.Off)
             {
                 throw new InvalidOperationException("Contract Failed: Tidak bisa mengatur suhu saat AC mati.");
             }
 
-           
+            // Pre-condition 2: Suhu harus dalam batas Runtime Configuration
             if (newTemp < _minTemp || newTemp > _maxTemp)
             {
                 throw new ArgumentOutOfRangeException(nameof(newTemp), $"Contract Failed: Suhu harus antara {_minTemp} dan {_maxTemp} derajat.");

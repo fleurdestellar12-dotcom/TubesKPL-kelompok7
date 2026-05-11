@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using SmartHomeApp.Devices;
 using SmartHomeApp.Managers;
 
@@ -8,36 +8,64 @@ namespace SmartHomeApp
     {
         static void Main(string[] args)
         {
+            // --- Header Program (Dari main/Rodzy & Radit) ---
             Console.WriteLine("=====================================");
             Console.WriteLine("Aplikasi Manajemen Rumah Pintar");
-            Console.WriteLine("Kelompok 7 - Modul Danu & Radit");
+            Console.WriteLine("Developer: I Made Radithya Kusuma Wardana");
+            Console.WriteLine("NIM: 103022400005 | Kelas: SE-48-04");
             Console.WriteLine("=====================================\n");
 
             try
             {
-                // Inisialisasi Modul Radit (Smart AC)
+                // --- 1. Inisialisasi Hub (Generics - Dari main/Rodzy) ---
+                // Menggunakan class DeviceManager generik untuk menampung SmartAC
+                DeviceManager<SmartAC> acHub = new DeviceManager<SmartAC>();
+                Console.WriteLine($"[Sistem] Kapasitas Hub: {acHub.MaxDevicesAllowed} perangkat.\n");
+
+                // Inisialisasi Perangkat AC
+                SmartAC acRuangTamu = new SmartAC();
                 SmartAC acKamar = new SmartAC();
 
-                // Inisialisasi Modul Danu (Automation Engine)
-                AutomationEngine myEngine = new AutomationEngine();
+                // Mendaftarkan perangkat ke Hub (Modul Rodzy)
+                acHub.AddDevice("AC-01", acRuangTamu);
+                acHub.AddDevice("AC-02", acKamar);
 
-                // Setup Jadwal (Table-Driven)
+                // --- 2. Inisialisasi Automation Engine (Tugas Danu) ---
+                AutomationEngine myEngine = new AutomationEngine();
+                Console.WriteLine("=== KONFIGURASI OTOMASI (DANU) ===");
+
+                // Menambah Jadwal Otomasi menggunakan Table-Driven Construction
+                // Integrasi: Mengambil perangkat dari Hub milik Rodzy untuk dikontrol
                 myEngine.AddSchedule("18:00", () => {
-                    Console.WriteLine(">>> [OTOMASI] Menyalakan AC sesuai jadwal...");
-                    acKamar.TurnOn();
-                    acKamar.SetTemperature(22);
+                    Console.WriteLine(">>> [OTOMASI] Waktunya menyalakan AC sore...");
+                    var target = acHub.GetDevice("AC-01"); 
+                    target.TurnOn();
+                    target.SetTemperature(22);
                 });
 
-                // Simulasi
-                myEngine.ExecuteSchedule("18:00");
+                myEngine.AddSchedule("06:00", () => {
+                    Console.WriteLine(">>> [OTOMASI] Waktunya mematikan AC pagi...");
+                    acHub.GetDevice("AC-01").TurnOff();
+                });
+
+                // --- 3. Simulasi Eksekusi Jadwal ---
+                myEngine.ExecuteSchedule("12:00"); // Jam tanpa jadwal
+                myEngine.ExecuteSchedule("18:00"); // Jam dengan jadwal otomasi
+
+                // --- 4. Tes Validasi Design by Contract (DbC) ---
+                Console.WriteLine("\n--- Tes Validasi Error ---");
+                
+                // Tes DbC Danu (Waktu salah format)
+                Console.WriteLine("[Tes] Input waktu salah:");
+                myEngine.AddSchedule("25:99", () => { });
             }
             catch (Exception ex)
             {
-                // Defensive Programming
-                Console.WriteLine($"\n[ERROR]: {ex.Message}");
+                // Menangkap exception dari DbC (Modul Radit/Danu/Rodzy)
+                Console.WriteLine($"\n[DBC DETECTED]: {ex.Message}");
             }
 
-            Console.WriteLine("\nTekan Enter untuk keluar.");
+            Console.WriteLine("\nProgram Selesai. Tekan Enter untuk keluar.");
             Console.ReadLine();
         }
     }
