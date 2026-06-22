@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SmartHomeApp.Tests/SmartHomeApp.Tests.csproj" />
+  <Project Path="SmartHomeApp/SmartHomeApp.csproj" />
+</Solution>
