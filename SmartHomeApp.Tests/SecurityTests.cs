@@ -2,22 +2,25 @@
 using Xunit;
 using SmartHomeApp.Devices;
 
-public class SecurityTests
+namespace SmartHomeApp.Tests
 {
-    [Fact]
-    public void TestSecurityModule()
+    public class SecurityTests
     {
-        var alarm = new SecurityAlarm();
+        [Fact]
+        public void TestSecurityModule()
+        {
+            var alarm = new SecurityAlarm();
 
-        [cite_start]// Performance Testing menggunakan Stopwatch [cite: 11]
-        Stopwatch sw = Stopwatch.StartNew();
+            // Performance Testing menggunakan Stopwatch 
+            Stopwatch sw = Stopwatch.StartNew();
 
-        alarm.ChangeState(AlarmState.ArmedAway, "1234");
+            alarm.ChangeState(AlarmState.ArmedAway, "1234");
 
-        sw.Stop();
+            sw.Stop();
 
-        [cite_start]// Unit Testing Assert [cite: 10]
-        Assert.Equal(AlarmState.ArmedAway, alarm.CurrentState);
-        Debug.WriteLine($"Kecepatan eksekusi: {sw.ElapsedMilliseconds} ms");
+            // Unit Testing Assert 
+            Assert.Equal(AlarmState.ArmedAway, alarm.CurrentState);
+            Debug.WriteLine($"Kecepatan eksekusi: {sw.ElapsedMilliseconds} ms");
+        }
     }
 }

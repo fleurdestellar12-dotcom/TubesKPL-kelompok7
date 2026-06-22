@@ -35,14 +35,15 @@ namespace SmartHomeApp.Tests
             Assert.Contains("sudah terdaftar", ex.Message);
         }
 
-        [Fact]
+       [Fact]
         public void AddDevice_NullDevice_ShouldThrowArgumentNullException()
         {
             // Arrange
             var hub = new DeviceManager<SmartAC>();
 
             // Act & Assert (Tes DbC)
-            Assert.Throws<ArgumentNullException>(() => hub.AddDevice("TEST-NULL", null));
+            // Tambahkan tanda '!' setelah 'null'
+            Assert.Throws<ArgumentNullException>(() => hub.AddDevice("TEST-NULL", null!)); 
         }
     }
 }

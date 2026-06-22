@@ -1,4 +1,6 @@
-﻿namespace SmartHomeApp.Devices
+﻿using System;
+
+namespace SmartHomeApp.Devices
 {
     // Definisi State untuk Automata
     public enum AlarmState { Disarmed, ArmedAway, Triggered }
@@ -10,7 +12,7 @@
         // Implementasi Automata & Design by Contract (DbC)
         public void ChangeState(AlarmState newState, string pin)
         {
-            [cite_start]// Pre-condition (DbC): Validasi PIN tidak boleh kosong [cite: 12]
+            // Pre-condition (DbC): Validasi PIN tidak boleh kosong
             if (string.IsNullOrEmpty(pin) || pin.Length < 4)
             {
                 throw new ArgumentException("PIN harus minimal 4 digit!");

@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace SmartHomeApp.Devices
 {
@@ -8,7 +11,6 @@ namespace SmartHomeApp.Devices
         public bool IsOn { get; private set; } = false;
         public string CurrentColor { get; private set; } = "Mati";
 
-        // Implementasi Table-Driven Construction
         private readonly Dictionary<string, string> weatherColorMap = new Dictionary<string, string>
         {
             { "Cerah Siang", "Putih Terang" },
@@ -31,26 +33,45 @@ namespace SmartHomeApp.Devices
             CurrentColor = "Mati";
         }
 
-        // Pemrosesan logika ditarik ke dalam Backend (Clean Code)
-        public void AdjustColorByRandomWeather(out string skenario, out string warna)
+        public async Task<string> FetchWeatherFromAPI()
         {
-            // Design by Contract (DbC): Tolak aksi jika lampu belum menyala
+            using (HttpClient client = new HttpClient())
+            {
+                // PERBAIKAN: Menambahkan &timezone=auto di akhir URL
+                string url = "https://api.open-meteo.com/v1/forecast?latitude=-6.9744&longitude=107.6303&current_weather=true&timezone=auto";
+                
+                HttpResponseMessage response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+
+                using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
+                {
+                    JsonElement root = doc.RootElement;
+                    JsonElement currentWeather = root.GetProperty("current_weather");
+                    
+                    int weatherCode = currentWeather.GetProperty("weathercode").GetInt32();
+                    string timeStr = currentWeather.GetProperty("time").GetString(); 
+                    
+                    // Sekarang jam yang diambil sudah sesuai dengan Waktu Indonesia Barat (WIB)
+                    int hour = DateTime.Parse(timeStr).Hour;
+                    string waktu = (hour >= 6 && hour < 18) ? "Siang" : "Malam";
+
+                    string cuaca = "Cerah";
+                    if (weatherCode >= 51 && weatherCode <= 67) cuaca = "Hujan"; 
+                    else if (weatherCode == 1 || weatherCode == 2 || weatherCode == 3) cuaca = "Mendung";
+
+                    return $"{cuaca} {waktu}";
+                }
+            }
+        }
+
+        public void AdjustColorByWeatherAPI(string skenario, out string warna)
+        {
             if (!IsOn)
             {
                 throw new InvalidOperationException("Lampu belum dinyalakan! Nyalakan terlebih dahulu.");
             }
 
-            string[] cuaca = { "Cerah", "Hujan", "Mendung" };
-            string[] waktu = { "Siang", "Malam" };
-
-            Random rnd = new Random();
-            string c = cuaca[rnd.Next(cuaca.Length)];
-            string w = waktu[rnd.Next(waktu.Length)];
-            
-            // Format skenario yang terpilih
-            skenario = $"{c} {w}";
-
-            // Table-Driven Logic
             if (weatherColorMap.TryGetValue(skenario, out string outputWarna))
             {
                 warna = outputWarna;
@@ -58,7 +79,7 @@ namespace SmartHomeApp.Devices
             }
             else
             {
-                warna = "Tidak Diketahui";
+                warna = "Putih Netral";
                 CurrentColor = "Default";
             }
         }
