@@ -5,39 +5,62 @@ namespace SmartHomeApp.Devices
 {
     public class SmartLight
     {
-        public bool IsOn { get; private set; }
-        public string CurrentColor { get; private set; }
-        
-        private readonly Dictionary<string, string> _weatherColorMatrix;
+        public bool IsOn { get; private set; } = false;
+        public string CurrentColor { get; private set; } = "Mati";
 
-        public SmartLight()
+        // Implementasi Table-Driven Construction
+        private readonly Dictionary<string, string> weatherColorMap = new Dictionary<string, string>
         {
-            IsOn = false;
-            CurrentColor = "Putih Netral";
-            _weatherColorMatrix = new Dictionary<string, string>
-            {
-                { "Clear", "Putih Terang" },
-                { "Rain", "Kuning Redup" },
-                { "Clouds", "Biru Sejuk" }
-            };
-        }
+            { "Cerah Siang", "Putih Terang" },
+            { "Cerah Malam", "Kuning Hangat" },
+            { "Hujan Siang", "Putih Redup" },
+            { "Hujan Malam", "Biru Redup" },
+            { "Mendung Siang", "Putih Netral" },
+            { "Mendung Malam", "Kuning Redup" }
+        };
 
         public void TurnOn()
         {
             IsOn = true;
-            Console.WriteLine("Lampu Pintar dinyalakan.");
+            CurrentColor = "Standby";
         }
 
-        public void AdjustColorByWeather(string weatherCondition)
+        public void TurnOff()
         {
-            if (!IsOn) 
-                throw new InvalidOperationException("Contract Failed: Lampu masih mati!");
-            
-            if (!_weatherColorMatrix.ContainsKey(weatherCondition))
-                throw new ArgumentException("Contract Failed: Cuaca tidak dikenal");
+            IsOn = false;
+            CurrentColor = "Mati";
+        }
 
-            CurrentColor = _weatherColorMatrix[weatherCondition];
-            Console.WriteLine($"[Otomatisasi Cuaca] {weatherCondition} -> Warna menjadi: {CurrentColor}");
+        // Pemrosesan logika ditarik ke dalam Backend (Clean Code)
+        public void AdjustColorByRandomWeather(out string skenario, out string warna)
+        {
+            // Design by Contract (DbC): Tolak aksi jika lampu belum menyala
+            if (!IsOn)
+            {
+                throw new InvalidOperationException("Lampu belum dinyalakan! Nyalakan terlebih dahulu.");
+            }
+
+            string[] cuaca = { "Cerah", "Hujan", "Mendung" };
+            string[] waktu = { "Siang", "Malam" };
+
+            Random rnd = new Random();
+            string c = cuaca[rnd.Next(cuaca.Length)];
+            string w = waktu[rnd.Next(waktu.Length)];
+            
+            // Format skenario yang terpilih
+            skenario = $"{c} {w}";
+
+            // Table-Driven Logic
+            if (weatherColorMap.TryGetValue(skenario, out string outputWarna))
+            {
+                warna = outputWarna;
+                CurrentColor = outputWarna;
+            }
+            else
+            {
+                warna = "Tidak Diketahui";
+                CurrentColor = "Default";
+            }
         }
     }
 }
